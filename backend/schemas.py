@@ -16,3 +16,18 @@ class UserResponse(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+class ProductBase(BaseModel):
+    name: str
+    price: float
+    stock: int = 0
+
+# Used when an admin creates a product
+class ProductCreate(ProductBase):
+    pass
+
+# Used when sending product data back to the client
+class ProductResponse(ProductBase):
+    id: int
+
+    class Config:
+        from_attributes = True

@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -64,3 +66,25 @@ def read_current_user(current_user: models.User = Depends(auth.get_current_user)
 @app.get("/admin/dashboard")
 def admin_only_route(current_user: models.User = Depends(auth.get_admin_user)):
     return {"message": f"Welcome to the secret admin dashboard, {current_user.email}!"}
+
+# --- PRODUCT ROUTES ---
+
+# 1. Public route: Anyone can view products
+@app.get("/products", response_model=List[schemas.ProductResponse])
+def get_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    products = db.query(models.Product).offset(skip).limit(limit).all()
+    return products
+
+# 2. Admin route: Only admins can create new products
+@app.post("/products", response_model=schemas.ProductResponse)
+def create_product(
+    product: schemas.ProductCreate, 
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_admin_user) # RBAC in action!
+):
+    # **product.model_dump() unpacks the dictionary into keyword arguments
+    new_product = models.Product(**product.model_dump())
+    db.add(new_product)
+    db.commit()
+    db.refresh(new_product)
+    return new_product
