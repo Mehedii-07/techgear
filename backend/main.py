@@ -88,3 +88,38 @@ def create_product(
     db.commit()
     db.refresh(new_product)
     return new_product
+@app.post("/orders", response_model=schemas.OrderResponse)
+def create_order(
+    order: schemas.OrderCreate, 
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user) # Only logged-in users
+):
+    # Step 1: Create the empty order linked to this user
+    new_order = models.Order(user_id=current_user.id)
+    db.add(new_order)
+    db.commit()
+    db.refresh(new_order)
+    
+    # Step 2: Loop through the cart and add each item to the database
+    for item in order.items:
+        db_item = models.OrderItem(
+            order_id=new_order.id,
+            product_id=item.product_id,
+            quantity=item.quantity
+        )
+        db.add(db_item)
+    
+    # Step 3: Save everything
+    db.commit()
+    db.refresh(new_order)
+    return new_order
+
+# 2. View my order history
+@app.get("/orders/me", response_model=List[schemas.OrderResponse])
+def get_my_orders(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    # Fetch only the orders belonging to the person making the request
+    orders = db.query(models.Order).filter(models.Order.user_id == current_user.id).all()
+    return orders

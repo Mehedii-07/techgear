@@ -1,3 +1,5 @@
+from typing import List
+
 from pydantic import BaseModel
 
 # Data we expect the user to send us when registering
@@ -28,6 +30,32 @@ class ProductCreate(ProductBase):
 # Used when sending product data back to the client
 class ProductResponse(ProductBase):
     id: int
+
+    class Config:
+        from_attributes = True
+# Represents a single item in the shopping cart
+class OrderItemCreate(BaseModel):
+    product_id: int
+    quantity: int
+
+# Represents the data sent back for a single item
+class OrderItemResponse(BaseModel):
+    id: int
+    product_id: int
+    quantity: int
+
+    class Config:
+        from_attributes = True
+
+# What the user sends to the server to check out
+class OrderCreate(BaseModel):
+    items: List[OrderItemCreate]
+
+# The final receipt sent back to the user
+class OrderResponse(BaseModel):
+    id: int
+    user_id: int
+    items: List[OrderItemResponse]
 
     class Config:
         from_attributes = True
