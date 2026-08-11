@@ -1,9 +1,10 @@
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
-
 import models
 import schemas
+import auth
 from database import SessionLocal
 
 app = FastAPI(title="TechGear API")
@@ -40,3 +41,16 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     
     # 4. Return the new user data
     return new_user
+@app.post("/login", response_model=schemas.Token)
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    # OAuth2PasswordRequestForm expects a "username", but we use email. 
+    # So the user will send their email in the "username" field.
+    user = db.query(models.User).filter(models.User.email == form_data.username).first()
+    
+    if not user or not auth.verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Incorrect email or password")
+    
+    # Generate the JWT Token
+    access_token = auth.create_access_token(data={"sub": user.email})
+    
+    return {"access_token": access_token, "token_type": "bearer"}
