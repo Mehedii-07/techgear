@@ -54,3 +54,13 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     access_token = auth.create_access_token(data={"sub": user.email})
     
     return {"access_token": access_token, "token_type": "bearer"}
+
+# 1. Available to ANY logged-in user
+@app.get("/users/me", response_model=schemas.UserResponse)
+def read_current_user(current_user: models.User = Depends(auth.get_current_user)):
+    return current_user
+
+# 2. Available ONLY to admins
+@app.get("/admin/dashboard")
+def admin_only_route(current_user: models.User = Depends(auth.get_admin_user)):
+    return {"message": f"Welcome to the secret admin dashboard, {current_user.email}!"}
