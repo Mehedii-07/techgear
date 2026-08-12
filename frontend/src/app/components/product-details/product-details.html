@@ -5,8 +5,9 @@
   <p class="price">${{ product.price }}</p>
   <p class="stock">Stock Available: {{ product.stock }}</p>
   
-  <button class="buy-btn" [disabled]="product.stock === 0">
-    Add to Cart
+  <!-- Find this button and update it -->
+  <button class="buy-btn" [disabled]="product.stock === 0" (click)="onAddToCart()">
+   Add to Cart
   </button>
 </div>
 
