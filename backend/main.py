@@ -8,6 +8,18 @@ import models
 import schemas
 import auth
 from database import SessionLocal
+from fastapi.middleware.cors import CORSMiddleware
+
+app = FastAPI(title="TechGear API")
+
+# ADD THIS CORS SETUP
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:4200"], # Allows your Angular app to connect
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app = FastAPI(title="TechGear API")
 
@@ -74,7 +86,13 @@ def admin_only_route(current_user: models.User = Depends(auth.get_admin_user)):
 def get_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     products = db.query(models.Product).offset(skip).limit(limit).all()
     return products
-
+# 5. Public route: Get a single product by ID
+@app.get("/products/{product_id}", response_model=schemas.ProductResponse)
+def get_product(product_id: int, db: Session = Depends(get_db)):
+    product = db.query(models.Product).filter(models.Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return product
 # 2. Admin route: Only admins can create new products
 @app.post("/products", response_model=schemas.ProductResponse)
 def create_product(

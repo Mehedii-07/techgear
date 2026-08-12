@@ -3,7 +3,9 @@
   
   <div class="product-grid" *ngIf="products.length > 0; else noProducts">
     <div class="product-card" *ngFor="let product of products">
-      <h3>{{ product.name }}</h3>
+
+      <!-- Inside your *ngFor loop -->
+      <h3><a [routerLink]="['/product', product.id]">{{ product.name }}</a></h3>
       <p class="price">${{ product.price }}</p>
       <p class="stock" [class.out-of-stock]="product.stock === 0">
         {{ product.stock > 0 ? 'In Stock: ' + product.stock : 'Out of Stock' }}
