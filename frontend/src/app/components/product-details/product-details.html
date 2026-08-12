@@ -1,0 +1,15 @@
+<div class="details-container" *ngIf="product">
+  <a routerLink="/" class="back-btn">← Back to Catalog</a>
+  
+  <h2>{{ product.name }}</h2>
+  <p class="price">${{ product.price }}</p>
+  <p class="stock">Stock Available: {{ product.stock }}</p>
+  
+  <button class="buy-btn" [disabled]="product.stock === 0">
+    Add to Cart
+  </button>
+</div>
+
+<div *ngIf="!product">
+  <p>Loading product details...</p>
+</div>

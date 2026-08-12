@@ -2,7 +2,6 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-// Define what a Product looks like based on our backend schemas
 export interface Product {
   id: number;
   name: string;
@@ -15,9 +14,14 @@ export interface Product {
 })
 export class ProductService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8000/products'; // Your FastAPI URL
+  private apiUrl = 'http://localhost:8000/products';
 
   getProducts(): Observable<Product[]> {
     return this.http.get<Product[]>(this.apiUrl);
+  }
+
+  // ADD THIS NEW METHOD
+  getProductById(id: number): Observable<Product> {
+    return this.http.get<Product>(`${this.apiUrl}/${id}`);
   }
 }
