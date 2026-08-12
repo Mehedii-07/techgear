@@ -1,0 +1,18 @@
+<div class="catalog-container">
+  <h2>TechGear Products</h2>
+  
+  <div class="product-grid" *ngIf="products.length > 0; else noProducts">
+    <div class="product-card" *ngFor="let product of products">
+      <h3>{{ product.name }}</h3>
+      <p class="price">${{ product.price }}</p>
+      <p class="stock" [class.out-of-stock]="product.stock === 0">
+        {{ product.stock > 0 ? 'In Stock: ' + product.stock : 'Out of Stock' }}
+      </p>
+      <button [disabled]="product.stock === 0">Add to Cart</button>
+    </div>
+  </div>
+
+  <ng-template #noProducts>
+    <p>No products available right now.</p>
+  </ng-template>
+</div>
