@@ -77,3 +77,41 @@
   border-radius: var(--border-radius);
   margin-bottom: 1rem;
 }
+
+.address-selection {
+  margin-bottom: 1.5rem;
+  
+  .address-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    border: 1px solid #eee;
+    border-radius: var(--border-radius);
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    
+    &:hover {
+      background-color: #f8f9fa;
+      border-color: #ddd;
+    }
+    
+    input[type="radio"] {
+      margin-top: 0.25rem;
+    }
+    
+    label {
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: var(--text-main);
+      line-height: 1.4;
+      flex: 1;
+    }
+  }
+}
+
+.new-address-form {
+  padding-top: 1rem;
+  border-top: 1px dashed #eee;
+}

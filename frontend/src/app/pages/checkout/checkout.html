@@ -7,10 +7,25 @@
       <div class="error-msg" *ngIf="errorMsg">{{ errorMsg }}</div>
       
       <form (ngSubmit)="processCheckout()">
-        <div class="form-group">
-          <label>Full Name</label>
-          <input type="text" name="name" [(ngModel)]="address.full_name" required>
+        <div class="address-selection" *ngIf="addresses.length > 0">
+          <div class="address-option" *ngFor="let addr of addresses">
+            <input type="radio" name="addressSelection" [value]="addr.id" [(ngModel)]="selectedAddressId" [id]="'addr-' + addr.id">
+            <label [for]="'addr-' + addr.id">
+              <strong>{{ addr.full_name }}</strong> - {{ addr.phone }}<br>
+              {{ addr.address_line1 }}, {{ addr.city }}, {{ addr.postal_code }}
+            </label>
+          </div>
+          <div class="address-option">
+            <input type="radio" name="addressSelection" value="new" [(ngModel)]="selectedAddressId" id="addr-new">
+            <label for="addr-new"><strong>Use a new address</strong></label>
+          </div>
         </div>
+
+        <div class="new-address-form" *ngIf="selectedAddressId === 'new'">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" name="name" [(ngModel)]="address.full_name" required>
+          </div>
         <div class="form-group">
           <label>Phone Number</label>
           <input type="text" name="phone" [(ngModel)]="address.phone" required>
@@ -27,6 +42,7 @@
           <label>Postal Code</label>
           <input type="text" name="postal" [(ngModel)]="address.postal_code" required>
         </div>
+        </div> <!-- End new-address-form -->
 
         <h3 class="mt-2">Payment Details</h3>
         <p class="text-sub">Please send total amount via <strong>bKash Send Money</strong> to <strong>01601223055</strong>.</p>

@@ -14,9 +14,23 @@ class UserResponse(BaseModel):
     id: int
     email: str
     role: str
+    name: Optional[str] = None
+    phone_number: Optional[str] = None
+    is_active: int
 
     class Config:
         from_attributes = True
+
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    phone_number: Optional[str] = None
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
 
 class CategoryBase(BaseModel):
     name: str
@@ -89,6 +103,7 @@ class OrderItemResponse(BaseModel):
     id: int
     product_id: int
     quantity: int
+    product: Optional[ProductResponse] = None
 
     class Config:
         from_attributes = True
@@ -104,9 +119,31 @@ class OrderResponse(BaseModel):
     address_id: Optional[int] = None
     status: str
     transaction_id: Optional[str] = None
+    tracking_number: Optional[str] = None
+    courier_name: Optional[str] = None
+    estimated_delivery: Optional[datetime] = None
     created_at: datetime
+    refund_status: Optional[str] = None
     items: List[OrderItemResponse]
     address: Optional[AddressResponse] = None
 
     class Config:
         from_attributes = True
+
+class OrderTrackingUpdate(BaseModel):
+    tracking_number: str
+    courier_name: str
+    estimated_delivery: datetime
+
+class AnalyticsResponse(BaseModel):
+    total_sales: float
+    total_orders: int
+    total_customers: int
+    total_products: int
+    today_sales: float
+    monthly_sales: float
+    low_stock_products: int
+    pending_orders: int
+    best_selling_products: List[dict]
+    revenue_graph: List[dict]
+    customer_growth: List[dict]

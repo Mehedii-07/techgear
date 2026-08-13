@@ -2,17 +2,21 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { ActivatedRoute } from '@angular/router';
 import { environment } from '../../../../environments/environment';
+import { BaseChartDirective } from 'ng2-charts';
+import { ChartConfiguration } from 'chart.js';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, BaseChartDirective],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss']
 })
 export class DashboardComponent implements OnInit {
   private http = inject(HttpClient);
+  private route = inject(ActivatedRoute);
   metrics = signal<any>(null);
   orders = signal<any[]>([]);
   categories = signal<any[]>([]);
@@ -30,10 +34,31 @@ export class DashboardComponent implements OnInit {
     category_id: null as number | null
   };
 
+  revenueChartData: ChartConfiguration<'line'>['data'] = { labels: [], datasets: [] };
+  revenueChartOptions: ChartConfiguration<'line'>['options'] = { responsive: true };
+
+  growthChartData: ChartConfiguration<'bar'>['data'] = { labels: [], datasets: [] };
+  growthChartOptions: ChartConfiguration<'bar'>['options'] = { responsive: true };
+
+  activeTab = 'analytics'; // 'analytics', 'users', 'products', 'orders', 'profile'
+  users = signal<any[]>([]);
+
+  // Profile State
+  adminUser: any = null;
+  adminName = '';
+  adminPhone = '';
+  isSavingProfile = false;
+  profileSuccess = '';
+
   ngOnInit() {
-    this.http.get<any>(`${environment.apiUrl}/admin/dashboard`).subscribe(res => {
-      this.metrics.set(res.metrics);
+    this.route.queryParams.subscribe(params => {
+      if (params['tab']) {
+        this.activeTab = params['tab'];
+      }
     });
+    this.fetchAnalytics();
+    this.fetchUsers();
+    this.fetchAdminProfile();
     this.http.get<any[]>(`${environment.apiUrl}/orders`).subscribe(res => {
       this.orders.set(res);
     });
@@ -41,6 +66,73 @@ export class DashboardComponent implements OnInit {
       this.categories.set(res);
     });
     this.loadProducts();
+  }
+
+  fetchAdminProfile() {
+    this.http.get(`${environment.apiUrl}/users/me`).subscribe((res: any) => {
+      this.adminUser = res;
+      this.adminName = res.name || '';
+      this.adminPhone = res.phone_number || '';
+    });
+  }
+
+  saveAdminProfile() {
+    this.isSavingProfile = true;
+    this.profileSuccess = '';
+    
+    this.http.put(`${environment.apiUrl}/users/me`, { 
+      name: this.adminName, 
+      phone_number: this.adminPhone 
+    }).subscribe({
+      next: (res: any) => {
+        this.adminUser = res;
+        this.profileSuccess = "Profile updated successfully!";
+        this.isSavingProfile = false;
+        setTimeout(() => this.profileSuccess = '', 3000);
+      },
+      error: () => {
+        this.isSavingProfile = false;
+        alert("Failed to update profile.");
+      }
+    });
+  }
+
+  fetchAnalytics() {
+    this.http.get<any>(`${environment.apiUrl}/admin/analytics`).subscribe(res => {
+      this.metrics.set(res);
+      this.revenueChartData = {
+        labels: res.revenue_graph.map((r: any) => r.date),
+        datasets: [{ data: res.revenue_graph.map((r: any) => r.total), label: 'Revenue ($)', borderColor: '#f39c12', tension: 0.1 }]
+      };
+      this.growthChartData = {
+        labels: res.customer_growth.map((r: any) => r.month),
+        datasets: [{ data: res.customer_growth.map((r: any) => r.new_users), label: 'New Users', backgroundColor: '#3498db' }]
+      };
+    });
+  }
+
+  fetchUsers() {
+    this.http.get<any[]>(`${environment.apiUrl}/admin/users`).subscribe(res => {
+      this.users.set(res);
+    });
+  }
+
+  toggleUserBan(userId: number) {
+    if(confirm('Are you sure you want to change this user\'s ban status?')) {
+      this.http.put(`${environment.apiUrl}/admin/users/${userId}/ban`, {}).subscribe({
+        next: () => this.fetchUsers(),
+        error: (err) => alert(err.error.detail)
+      });
+    }
+  }
+
+  toggleUserRole(userId: number) {
+    if(confirm('Are you sure you want to change this user\'s role?')) {
+      this.http.put(`${environment.apiUrl}/admin/users/${userId}/role`, {}).subscribe({
+        next: () => this.fetchUsers(),
+        error: (err) => alert(err.error.detail)
+      });
+    }
   }
 
   loadProducts() {
@@ -115,8 +207,48 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  trackingData: { [orderId: number]: { tracking_number: string, courier_name: string, estimated_delivery: string } } = {};
+
   toggleOrderDetails(orderId: number) {
     this.expandedOrderId = this.expandedOrderId === orderId ? null : orderId;
+    if (this.expandedOrderId) {
+      const order = this.orders().find(o => o.id === orderId);
+      if (order && !this.trackingData[orderId]) {
+        let estDelivery = '';
+        if (order.estimated_delivery) {
+          estDelivery = new Date(order.estimated_delivery).toISOString().split('T')[0];
+        }
+        this.trackingData[orderId] = {
+          tracking_number: order.tracking_number || '',
+          courier_name: order.courier_name || '',
+          estimated_delivery: estDelivery
+        };
+      }
+    }
+  }
+
+  updateTracking(orderId: number) {
+    const data = this.trackingData[orderId];
+    if (!data.tracking_number || !data.courier_name || !data.estimated_delivery) {
+      alert('Please fill out all tracking fields.');
+      return;
+    }
+    
+    const payload = {
+      tracking_number: data.tracking_number,
+      courier_name: data.courier_name,
+      estimated_delivery: new Date(data.estimated_delivery).toISOString()
+    };
+    
+    this.http.put(`${environment.apiUrl}/admin/orders/${orderId}/tracking`, payload).subscribe({
+      next: () => {
+        alert('Tracking information updated successfully!');
+        this.http.get<any[]>(`${environment.apiUrl}/orders`).subscribe(res => {
+          this.orders.set(res);
+        });
+      },
+      error: (err) => alert('Failed to update tracking: ' + (err.error?.detail || err.message))
+    });
   }
 
   getProductDetails(productId: number): any {
@@ -130,5 +262,19 @@ export class DashboardComponent implements OnInit {
         this.orders.set(res);
       });
     });
+  }
+
+  processRefund(orderId: number) {
+    if (confirm('Are you sure you want to mark this refund as processed?')) {
+      this.http.put(`${environment.apiUrl}/admin/orders/${orderId}/refund`, {}).subscribe({
+        next: () => {
+          alert('Refund processed successfully.');
+          this.http.get<any[]>(`${environment.apiUrl}/orders`).subscribe(res => {
+            this.orders.set(res);
+          });
+        },
+        error: (err) => alert('Failed to process refund: ' + err.error.detail)
+      });
+    }
   }
 }
