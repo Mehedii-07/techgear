@@ -13,7 +13,11 @@ export class AuthService {
   isLoggedIn = signal<boolean>(this.hasToken());
 
   private hasToken(): boolean {
-    return !!localStorage.getItem('token');
+    // Only access localStorage in the browser
+    if (typeof localStorage !== 'undefined') {
+      return !!localStorage.getItem('token');
+    }
+    return false;
   }
 
   register(email: string, password: string): Observable<any> {

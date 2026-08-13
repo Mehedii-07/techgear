@@ -1,0 +1,16 @@
+<a [routerLink]="['/product', product.id]" class="product-card card">
+  <div class="image-placeholder">
+    <div class="stock-out-badge" *ngIf="product.stock <= 0">Out of Stock</div>
+    <img *ngIf="product.image_url; else noImage" [src]="product.image_url" [alt]="product.name" [class.out-of-stock]="product.stock <= 0">
+    <ng-template #noImage>
+      <div class="no-img">No Image</div>
+    </ng-template>
+  </div>
+  <div class="details">
+    <h3 class="title" [title]="product.name">{{ product.name }}</h3>
+    <div class="price">${{ product.price }}</div>
+    <button class="btn-primary" (click)="addToCart($event)" [disabled]="product.stock <= 0">
+      {{ product.stock > 0 ? 'Add to Cart' : 'Stock Out' }}
+    </button>
+  </div>
+</a>

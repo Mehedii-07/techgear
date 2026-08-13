@@ -1,13 +1,15 @@
-from typing import List
-
+from typing import List, Optional
+from datetime import datetime
 from pydantic import BaseModel
 
-# Data we expect the user to send us when registering
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
 class UserCreate(BaseModel):
     email: str
     password: str
 
-# Data we safely return back to the user (notice there is NO password here!)
 class UserResponse(BaseModel):
     id: int
     email: str
@@ -15,30 +17,74 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
-class Token(BaseModel):
-    access_token: str
-    token_type: str
+
+class CategoryBase(BaseModel):
+    name: str
+    slug: str
+
+class CategoryCreate(CategoryBase):
+    pass
+
+class CategoryResponse(CategoryBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
 class ProductBase(BaseModel):
     name: str
     price: float
     stock: int = 0
+    description: Optional[str] = None
+    image_url: Optional[str] = None
+    category_id: Optional[int] = None
 
-# Used when an admin creates a product
 class ProductCreate(ProductBase):
     pass
 
-# Used when sending product data back to the client
 class ProductResponse(ProductBase):
     id: int
 
     class Config:
         from_attributes = True
-# Represents a single item in the shopping cart
+
+class ReviewCreate(BaseModel):
+    product_id: int
+    rating: int
+    text: Optional[str] = None
+
+class ReviewResponse(BaseModel):
+    id: int
+    product_id: int
+    user_id: int
+    rating: int
+    text: Optional[str] = None
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+class AddressBase(BaseModel):
+    full_name: str
+    phone: str
+    address_line1: str
+    city: str
+    postal_code: str
+
+class AddressCreate(AddressBase):
+    pass
+
+class AddressResponse(AddressBase):
+    id: int
+    user_id: int
+
+    class Config:
+        from_attributes = True
+
 class OrderItemCreate(BaseModel):
     product_id: int
     quantity: int
 
-# Represents the data sent back for a single item
 class OrderItemResponse(BaseModel):
     id: int
     product_id: int
@@ -47,15 +93,20 @@ class OrderItemResponse(BaseModel):
     class Config:
         from_attributes = True
 
-# What the user sends to the server to check out
 class OrderCreate(BaseModel):
     items: List[OrderItemCreate]
+    address_id: Optional[int] = None
+    transaction_id: str
 
-# The final receipt sent back to the user
 class OrderResponse(BaseModel):
     id: int
     user_id: int
+    address_id: Optional[int] = None
+    status: str
+    transaction_id: Optional[str] = None
+    created_at: datetime
     items: List[OrderItemResponse]
+    address: Optional[AddressResponse] = None
 
     class Config:
         from_attributes = True

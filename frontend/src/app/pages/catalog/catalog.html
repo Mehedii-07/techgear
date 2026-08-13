@@ -1,0 +1,39 @@
+<div class="catalog-container">
+  <aside class="sidebar card">
+    <h3>Categories</h3>
+    <ul class="category-list">
+      <li 
+        [class.active]="selectedCategory() === null" 
+        (click)="selectCategory(null)"
+      >
+        All Products
+      </li>
+      <li 
+        *ngFor="let cat of categories()" 
+        [class.active]="selectedCategory() === cat.id"
+        (click)="selectCategory(cat.id)"
+      >
+        {{ cat.name }}
+      </li>
+    </ul>
+  </aside>
+  
+  <section class="products-section">
+    <div class="header">
+      <h2>Our Products</h2>
+      <div class="filter-controls">
+        <!-- Optional extra filters here -->
+      </div>
+    </div>
+    
+    <div class="product-grid" *ngIf="products().length > 0; else emptyState">
+      <app-product-card *ngFor="let p of products()" [product]="p"></app-product-card>
+    </div>
+    
+    <ng-template #emptyState>
+      <div class="empty-state">
+        No products found.
+      </div>
+    </ng-template>
+  </section>
+</div>

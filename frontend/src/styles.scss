@@ -1,1 +1,119 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --primary-color: #f85606;
+  --bg-color: #f5f5f5;
+  --card-bg: #ffffff;
+  --text-main: #212121;
+  --text-sub: #757575;
+  --shadow-subtle: 0 2px 4px rgba(0,0,0,0.08);
+  --shadow-hover: 0 8px 16px rgba(0,0,0,0.12);
+  --border-radius: 4px;
+  --transition-speed: 0.2s ease-in-out;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  line-height: 1.5;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-main);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+p {
+  color: var(--text-sub);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Global button styles */
+.btn-primary {
+  background-color: var(--primary-color);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color var(--transition-speed);
+  display: inline-block;
+  text-align: center;
+}
+
+.btn-primary:hover {
+  background-color: #d14a06; /* slightly darker orange */
+}
+
+.btn-secondary {
+  background-color: #fff;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  padding: 10px 20px;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all var(--transition-speed);
+  display: inline-block;
+  text-align: center;
+}
+
+.btn-secondary:hover {
+  background-color: var(--primary-color);
+  color: #fff;
+}
+
+/* Common Card style */
+.card {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-subtle);
+  overflow: hidden;
+  transition: box-shadow var(--transition-speed), transform var(--transition-speed);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+}
+
+/* Fluid CSS Grid for products */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  padding: 16px 0;
+}
+
+/* Input Fields */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+select,
+textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: var(--border-radius);
+  font-size: 14px;
+  outline: none;
+  transition: border-color var(--transition-speed);
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--primary-color);
+}

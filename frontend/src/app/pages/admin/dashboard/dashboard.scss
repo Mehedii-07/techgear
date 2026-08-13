@@ -1,0 +1,139 @@
+.admin-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.metric-card {
+  padding: 2rem;
+  text-align: center;
+  
+  .label {
+    color: var(--text-sub);
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+  }
+  
+  .value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+  }
+}
+
+.mt-2 { margin-top: 2rem; }
+.p-1 { padding: 1rem; }
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  
+  th, td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+  }
+  
+  th {
+    background: #fafafa;
+    font-weight: 600;
+  }
+}
+
+.status-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  
+  &.pending { background: #fff3cd; color: #856404; }
+  &.processing { background: #cce5ff; color: #004085; }
+  &.shipped { background: #d4edda; color: #155724; }
+  &.delivered { background: #d4edda; color: #155724; }
+}
+
+.order-details-row {
+  background-color: #fafafa;
+  
+  .order-details-card {
+    padding: 1rem;
+    border-left: 4px solid var(--primary-color);
+    background: #fff;
+    margin: 0.5rem 0;
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    
+    ul {
+      margin-top: 0.5rem;
+      padding-left: 1.5rem;
+      
+      li {
+        margin-bottom: 0.25rem;
+      }
+    }
+  }
+}
+
+.add-product-form {
+  margin-top: 1rem;
+  
+  .form-row {
+    display: flex;
+    gap: 1rem;
+    
+    @media (max-width: 768px) {
+      flex-direction: column;
+      gap: 0;
+    }
+    
+    .form-group {
+      flex: 1;
+    }
+  }
+  
+  .form-group {
+    margin-bottom: 1rem;
+    
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    
+    input, select, textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #ccc;
+      border-radius: var(--border-radius);
+      font-family: inherit;
+    }
+  }
+  
+  .form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+}
+
+.mr-1 { margin-right: 0.5rem; }
+.btn-sm { padding: 0.25rem 0.5rem; font-size: 0.8rem; }
+.btn-danger {
+  background-color: #d32f2f;
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  
+  &:hover { background-color: #b71c1c; }
+}
+.text-success { color: #2e7d32; font-weight: bold; }
+.text-danger { color: #d32f2f; font-weight: bold; }

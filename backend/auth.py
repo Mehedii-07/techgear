@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, timedelta
 import jwt
-from passlib.context import CryptContext
+import bcrypt
 from dotenv import load_dotenv
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -16,7 +16,6 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # This tells FastAPI where our login endpoint is, enabling the "Authorize" button in the docs!
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
@@ -29,10 +28,10 @@ def get_db():
         db.close()
 
 def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
 
 def get_password_hash(password: str):
-    return pwd_context.hash(password)
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
 def create_access_token(data: dict):
     to_encode = data.copy()
