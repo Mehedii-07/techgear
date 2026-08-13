@@ -9,6 +9,11 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     role = Column(String, default="customer") # "customer" or "admin"
+    name = Column(String, nullable=True)
+    phone_number = Column(String, nullable=True)
+    is_active = Column(Integer, default=1) # 1 for active, 0 for banned (using Integer for SQLite boolean compatibility if needed, but boolean is fine for Postgres)
+    reset_token = Column(String, index=True, nullable=True)
+    token_expiry = Column(DateTime(timezone=True), nullable=True)
     
     orders = relationship("Order", back_populates="owner")
     addresses = relationship("Address", back_populates="owner")
@@ -54,9 +59,13 @@ class Order(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     address_id = Column(Integer, ForeignKey("addresses.id"), nullable=True)
-    status = Column(String, default="pending") # pending, processing, shipped, delivered
+    status = Column(String, default="pending") # pending, processing, shipped, delivered, cancelled
     transaction_id = Column(String, nullable=True)
+    tracking_number = Column(String, nullable=True)
+    courier_name = Column(String, nullable=True)
+    estimated_delivery = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    refund_status = Column(String, nullable=True) # None, requested, refunded, failed
     
     owner = relationship("User", back_populates="orders")
     address = relationship("Address", back_populates="orders")

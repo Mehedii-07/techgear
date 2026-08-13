@@ -1,0 +1,98 @@
+<div class="account-layout">
+  <div class="sidebar">
+    <div class="sidebar-brand">My Account</div>
+    <div class="sidebar-nav">
+      <button [class.active]="activeTab === 'profile'" (click)="activeTab = 'profile'">👤 Profile</button>
+      <button [class.active]="activeTab === 'orders'" (click)="activeTab = 'orders'">📦 My Orders</button>
+    </div>
+  </div>
+
+  <div class="account-content">
+    
+    <!-- Profile Tab -->
+    <div *ngIf="activeTab === 'profile'">
+      <h2>Profile Management</h2>
+      <div class="profile-card" *ngIf="user">
+        <div *ngIf="profileSuccess" class="success-msg">
+          {{ profileSuccess }}
+        </div>
+        <form (ngSubmit)="saveProfile()">
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" [value]="user.email" readonly class="readonly-field">
+            <small style="color: var(--text-sub);">Email cannot be changed.</small>
+          </div>
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" name="name" [(ngModel)]="name" placeholder="John Doe">
+          </div>
+          <div class="form-group">
+            <label>Phone Number</label>
+            <input type="text" name="phoneNumber" [(ngModel)]="phoneNumber" placeholder="+1234567890">
+          </div>
+          <button type="submit" class="btn-primary" [disabled]="isSavingProfile">
+            {{ isSavingProfile ? 'Saving...' : 'Save Profile' }}
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Orders Tab -->
+    <div *ngIf="activeTab === 'orders'">
+      <h2>My Orders</h2>
+      <div *ngIf="orders().length === 0" style="padding: 2rem; background: #fff; text-align: center; border-radius: 8px;">
+        <p>You have not placed any orders yet.</p>
+      </div>
+
+      <div class="order-list">
+        <div class="order-card" *ngFor="let order of orders()">
+          <div class="order-header">
+            <div class="info">
+              <strong>Order #{{ order.id }}</strong><br>
+              <span class="date">{{ order.created_at | date:'medium' }}</span>
+              <div *ngIf="order.refund_status" style="margin-top: 0.25rem; font-size: 0.85rem;">
+                <strong>Refund Status:</strong> 
+                <span [ngStyle]="{'color': order.refund_status === 'refunded' ? 'green' : 'orange'}">
+                  {{ order.refund_status | titlecase }}
+                </span>
+              </div>
+            </div>
+            <div class="status-badge" [ngClass]="order.status">{{ order.status | titlecase }}</div>
+          </div>
+          
+          <div class="order-items" style="margin-top: 1rem;">
+            <div class="item" *ngFor="let item of order.items" style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; padding: 0.75rem; border: 1px solid #eee; border-radius: 6px; background-color: #fafafa;">
+              <div class="product-image" style="width: 64px; height: 64px; flex-shrink: 0; background-color: #fff; border: 1px solid #ddd; border-radius: 4px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                <img *ngIf="item.product?.image_url" [src]="item.product.image_url" [alt]="item.product.name" style="max-width: 100%; max-height: 100%; object-fit: cover;">
+                <span *ngIf="!item.product?.image_url" style="color: #ccc; font-size: 0.75rem;">No Img</span>
+              </div>
+              <div class="product-details" style="flex: 1;">
+                <div style="font-weight: 600; font-size: 1rem; margin-bottom: 0.25rem;">{{ item.product?.name || ('Product #' + item.product_id) }}</div>
+                <div style="color: var(--text-sub); font-size: 0.9rem;">Qty: {{ item.quantity }} &times; ${{ item.product?.price || 0 }}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="tracking-info mt-1" *ngIf="order.tracking_number" style="margin-top: 1rem;">
+            <p><strong>Courier:</strong> {{ order.courier_name }}</p>
+            <p><strong>Tracking Number:</strong> {{ order.tracking_number }}</p>
+            <p *ngIf="order.estimated_delivery"><strong>Est. Delivery:</strong> {{ order.estimated_delivery | date }}</p>
+          </div>
+
+          <div class="timeline" *ngIf="order.status !== 'cancelled'">
+            <div class="step" [class.active]="order.status === 'pending' || order.status === 'processing' || order.status === 'shipped' || order.status === 'delivered'">Placed</div>
+            <div class="step" [class.active]="order.status === 'processing' || order.status === 'shipped' || order.status === 'delivered'">Processing</div>
+            <div class="step" [class.active]="order.status === 'shipped' || order.status === 'delivered'">Shipped</div>
+            <div class="step" [class.active]="order.status === 'delivered'">Delivered</div>
+          </div>
+
+          <div class="actions" style="margin-top: 1rem; display: flex; gap: 1rem;">
+            <button *ngIf="order.status === 'pending'" class="btn-secondary" (click)="cancelOrder(order.id)">Cancel Order</button>
+            <button *ngIf="(order.status === 'shipped' || order.status === 'delivered') && !order.refund_status" class="btn-secondary" (click)="requestRefund(order.id)">Request Return/Refund</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

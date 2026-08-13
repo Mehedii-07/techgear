@@ -1,149 +1,304 @@
-<div class="admin-container">
-  <h2>Admin Dashboard</h2>
-  
-  <div class="metrics-grid" *ngIf="metrics()">
-    <div class="card metric-card">
-      <div class="label">Total Sales</div>
-      <div class="value">${{ metrics().total_sales | number:'1.2-2' }}</div>
-    </div>
-    <div class="card metric-card">
-      <div class="label">Total Orders</div>
-      <div class="value">{{ metrics().total_orders }}</div>
+<div class="admin-layout">
+  <div class="sidebar">
+    <div class="sidebar-brand">Admin Center</div>
+    <div class="sidebar-nav">
+      <button [class.active]="activeTab === 'analytics'" (click)="activeTab = 'analytics'">📈 Analytics</button>
+      <button [class.active]="activeTab === 'users'" (click)="activeTab = 'users'">👥 Users</button>
+      <button [class.active]="activeTab === 'orders'" (click)="activeTab = 'orders'">📦 Orders</button>
+      <button [class.active]="activeTab === 'products'" (click)="activeTab = 'products'">🛍️ Products</button>
+      <button [class.active]="activeTab === 'profile'" (click)="activeTab = 'profile'">👤 Profile</button>
     </div>
   </div>
 
-  <h3 class="mt-2">Recent Orders</h3>
-  <div class="card p-1">
-    <table class="admin-table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>User ID</th>
-          <th>Date</th>
-          <th>Status</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        <ng-container *ngFor="let o of orders()">
-          <tr>
-            <td>#{{ o.id }}</td>
-            <td>{{ o.user_id }}</td>
-            <td>{{ o.created_at | date:'short' }}</td>
-            <td>
-              <span class="status-badge" [ngClass]="o.status">{{ o.status }}</span>
-            </td>
-            <td>
-              <button class="btn-sm btn-secondary mr-1" (click)="toggleOrderDetails(o.id)">Details</button>
-              <select (change)="updateOrderStatus(o.id, $any($event.target).value)" [value]="o.status">
-                <option value="pending">Pending</option>
-                <option value="processing">Processing</option>
-                <option value="shipped">Shipped</option>
-                <option value="delivered">Delivered</option>
+  <div class="admin-content">
+    
+    <!-- PROFILE TAB -->
+    <div *ngIf="activeTab === 'profile'">
+      <h2>Admin Profile</h2>
+      <div class="card p-1" *ngIf="adminUser" style="max-width: 600px;">
+        <div *ngIf="profileSuccess" class="success-msg" style="color: #155724; background: #d4edda; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+          {{ profileSuccess }}
+        </div>
+        <form (ngSubmit)="saveAdminProfile()">
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Email Address</label>
+            <input type="email" [value]="adminUser.email" readonly style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px; background-color: #f8f9fa; cursor: not-allowed;">
+          </div>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Full Name</label>
+            <input type="text" name="name" [(ngModel)]="adminName" placeholder="Admin Name" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px;">
+          </div>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Phone Number</label>
+            <input type="text" name="phoneNumber" [(ngModel)]="adminPhone" placeholder="+1234567890" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px;">
+          </div>
+          <button type="submit" class="btn-primary" [disabled]="isSavingProfile">
+            {{ isSavingProfile ? 'Saving...' : 'Save Profile' }}
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ANALYTICS TAB -->
+    <div *ngIf="activeTab === 'analytics'">
+      <h2>Dashboard Analytics</h2>
+      
+      <div class="metrics-grid" *ngIf="metrics()">
+        <div class="card metric-card">
+          <div class="label">Total Sales</div>
+          <div class="value">${{ metrics().total_sales | number:'1.2-2' }}</div>
+        </div>
+        <div class="card metric-card">
+          <div class="label">Today's Sales</div>
+          <div class="value">${{ metrics().today_sales | number:'1.2-2' }}</div>
+        </div>
+        <div class="card metric-card">
+          <div class="label">Monthly Sales</div>
+          <div class="value">${{ metrics().monthly_sales | number:'1.2-2' }}</div>
+        </div>
+        <div class="card metric-card">
+          <div class="label">Total Orders</div>
+          <div class="value">{{ metrics().total_orders }}</div>
+        </div>
+        <div class="card metric-card">
+          <div class="label">Customers</div>
+          <div class="value">{{ metrics().total_customers }}</div>
+        </div>
+        <div class="card metric-card">
+          <div class="label">Products</div>
+          <div class="value">{{ metrics().total_products }}</div>
+        </div>
+        <div class="card metric-card" [class.warning]="metrics().low_stock_products > 0">
+          <div class="label">Low Stock Alert</div>
+          <div class="value">{{ metrics().low_stock_products }}</div>
+        </div>
+        <div class="card metric-card warning-card" *ngIf="metrics().pending_orders > 0">
+          <div class="label">Pending Orders</div>
+          <div class="value">{{ metrics().pending_orders }}</div>
+        </div>
+      </div>
+
+      <div class="charts-container">
+        <div class="card chart-card">
+          <h3>Revenue (Last 30 Days)</h3>
+          <canvas baseChart [data]="revenueChartData" [options]="revenueChartOptions" [type]="'line'"></canvas>
+        </div>
+        <div class="card chart-card">
+          <h3>Customer Growth</h3>
+          <canvas baseChart [data]="growthChartData" [options]="growthChartOptions" [type]="'bar'"></canvas>
+        </div>
+      </div>
+
+      <h3 class="mt-2">Best Selling Products</h3>
+      <div class="card p-1">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Product Name</th>
+              <th>Total Sold</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of metrics()?.best_selling_products">
+              <td>{{ p.name }}</td>
+              <td>{{ p.total_sold }} units</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- USERS TAB -->
+    <div *ngIf="activeTab === 'users'">
+      <h2>User Management</h2>
+      <div class="card p-1">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let user of users()">
+              <td>#{{ user.id }}</td>
+              <td>{{ user.email }}</td>
+              <td>
+                <span class="status-badge" [class.pending]="user.role === 'admin'" [class.shipped]="user.role === 'customer'">{{ user.role }}</span>
+              </td>
+              <td>
+                <span class="status-badge" [class.delivered]="user.is_active === 1" [class.cancelled]="user.is_active === 0">
+                  {{ user.is_active === 1 ? 'Active' : 'Banned' }}
+                </span>
+              </td>
+              <td>
+                <button class="btn-sm btn-secondary mr-1" (click)="toggleUserRole(user.id)">Toggle Admin</button>
+                <button class="btn-sm" [class.btn-danger]="user.is_active === 1" [class.btn-primary]="user.is_active === 0" (click)="toggleUserBan(user.id)">
+                  {{ user.is_active === 1 ? 'Ban User' : 'Unban User' }}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ORDERS TAB -->
+    <div *ngIf="activeTab === 'orders'">
+      <h2>Recent Orders</h2>
+      <div class="card p-1">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>User ID</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngFor="let o of orders()">
+              <tr>
+                <td>#{{ o.id }}</td>
+                <td>{{ o.user_id }}</td>
+                <td>{{ o.created_at | date:'short' }}</td>
+                <td>
+                  <span class="status-badge" [ngClass]="o.status">{{ o.status }}</span>
+                  <div *ngIf="o.refund_status" style="margin-top: 0.25rem; font-size: 0.8rem; font-weight: bold;">
+                    Refund: <span [ngStyle]="{'color': o.refund_status === 'refunded' ? 'green' : 'orange'}">{{ o.refund_status | titlecase }}</span>
+                  </div>
+                </td>
+                <td>
+                  <button class="btn-sm btn-secondary mr-1" (click)="toggleOrderDetails(o.id)">Details</button>
+                  <select (change)="updateOrderStatus(o.id, $any($event.target).value)" [value]="o.status" style="padding: 0.2rem; border-radius: 4px;">
+                    <option value="pending">Pending</option>
+                    <option value="processing">Processing</option>
+                    <option value="shipped">Shipped</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                  <button *ngIf="o.refund_status === 'requested'" class="btn-sm" style="margin-left: 0.5rem; background-color: #f39c12; color: white;" (click)="processRefund(o.id)">Process Refund</button>
+                </td>
+              </tr>
+              <!-- Expanded Details Row -->
+              <tr *ngIf="expandedOrderId === o.id" class="order-details-row">
+                <td colspan="5">
+                  <div class="order-details-card" style="display: flex; gap: 2rem; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 250px;">
+                      <h4 style="margin-bottom: 0.5rem;">Order Details</h4>
+                      <strong>Transaction ID:</strong> {{ o.transaction_id || 'N/A' }} <br/>
+                      
+                      <strong style="display: block; margin-top: 0.5rem;">Update Tracking Info:</strong>
+                      <div class="tracking-form" *ngIf="trackingData[o.id]" style="margin-top: 0.5rem; padding: 0.75rem; background: #f8f9fa; border: 1px solid #ddd; border-radius: 4px; max-width: 300px;">
+                        <input type="text" [(ngModel)]="trackingData[o.id].courier_name" placeholder="Courier Name" style="margin-bottom: 0.5rem; width: 100%; padding: 0.4rem; border: 1px solid #ccc; border-radius: 4px;">
+                        <input type="text" [(ngModel)]="trackingData[o.id].tracking_number" placeholder="Tracking Number" style="margin-bottom: 0.5rem; width: 100%; padding: 0.4rem; border: 1px solid #ccc; border-radius: 4px;">
+                        <input type="date" [(ngModel)]="trackingData[o.id].estimated_delivery" style="margin-bottom: 0.5rem; width: 100%; padding: 0.4rem; border: 1px solid #ccc; border-radius: 4px;">
+                        <button class="btn-sm btn-primary" style="width: 100%;" (click)="updateTracking(o.id)">Save Tracking</button>
+                      </div>
+
+                      <strong style="display: block; margin-top: 1rem;">Ordered Items:</strong>
+                      <ul style="margin-top: 0.5rem; padding-left: 1.2rem;">
+                        <li *ngFor="let item of o.items">
+                          {{ item.quantity }}x {{ getProductDetails(item.product_id).name }}
+                          <span class="text-sub">(${{ getProductDetails(item.product_id).price }})</span>
+                        </li>
+                      </ul>
+                    </div>
+                    <div style="flex: 1; min-width: 250px;" *ngIf="o.address">
+                      <h4 style="margin-bottom: 0.5rem;">Shipping Address</h4>
+                      <p style="margin: 0;"><strong>{{ o.address.full_name }}</strong></p>
+                      <p style="margin: 0;">Phone: {{ o.address.phone }}</p>
+                      <p style="margin: 0;">{{ o.address.address_line1 }}</p>
+                      <p style="margin: 0;">{{ o.address.city }}, {{ o.address.postal_code }}</p>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PRODUCTS TAB -->
+    <div *ngIf="activeTab === 'products'">
+      <h2>Manage Products</h2>
+      <div class="card p-0 mt-1" style="overflow-x: auto;">
+        <table class="table w-100">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of products()">
+              <td>#{{ p.id }}</td>
+              <td>{{ p.name }}</td>
+              <td>${{ p.price }}</td>
+              <td>
+                <span [class]="p.stock > 0 ? 'text-success' : 'text-danger'">
+                  {{ p.stock > 0 ? p.stock : 'Stock Out' }}
+                </span>
+              </td>
+              <td>
+                <button class="btn-sm btn-primary mr-1" (click)="editProduct(p)">Edit</button>
+                <button class="btn-sm btn-danger" (click)="deleteProduct(p.id)">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <h3 class="mt-2">{{ editingProductId ? 'Edit Product' : 'Add New Product' }}</h3>
+      <div class="card p-1 add-product-form">
+        <form (ngSubmit)="createProduct()">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Product Name</label>
+              <input type="text" name="name" [(ngModel)]="newProduct.name" required>
+            </div>
+            <div class="form-group">
+              <label>Price ($)</label>
+              <input type="number" name="price" [(ngModel)]="newProduct.price" required min="0">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Stock</label>
+              <input type="number" name="stock" [(ngModel)]="newProduct.stock" required min="0">
+            </div>
+            <div class="form-group">
+              <label>Category</label>
+              <select name="category" [(ngModel)]="newProduct.category_id">
+                <option [ngValue]="null">-- Select Category --</option>
+                <option *ngFor="let c of categories()" [value]="c.id">{{ c.name }}</option>
               </select>
-            </td>
-          </tr>
-          <!-- Expanded Details Row -->
-          <tr *ngIf="expandedOrderId === o.id" class="order-details-row">
-            <td colspan="5">
-              <div class="order-details-card" style="display: flex; gap: 2rem; flex-wrap: wrap;">
-                <div style="flex: 1; min-width: 250px;">
-                  <h4 style="margin-bottom: 0.5rem;">Order Details</h4>
-                  <strong>Transaction ID:</strong> {{ o.transaction_id || 'N/A' }} <br/>
-                  <strong>Ordered Items:</strong>
-                  <ul style="margin-top: 0.5rem; padding-left: 1.2rem;">
-                    <li *ngFor="let item of o.items">
-                      {{ item.quantity }}x {{ getProductDetails(item.product_id).name }}
-                      <span class="text-sub">(${{ getProductDetails(item.product_id).price }})</span>
-                    </li>
-                  </ul>
-                </div>
-                <div style="flex: 1; min-width: 250px;" *ngIf="o.address">
-                  <h4 style="margin-bottom: 0.5rem;">Shipping Address</h4>
-                  <p style="margin: 0;"><strong>{{ o.address.full_name }}</strong></p>
-                  <p style="margin: 0;">Phone: {{ o.address.phone }}</p>
-                  <p style="margin: 0;">{{ o.address.address_line1 }}</p>
-                  <p style="margin: 0;">{{ o.address.city }}, {{ o.address.postal_code }}</p>
-                </div>
-              </div>
-            </td>
-          </tr>
-        </ng-container>
-      </tbody>
-    </table>
-  </div>
-  
-  <h3 class="mt-2">Manage Products</h3>
-  <div class="card p-0 mt-1" style="overflow-x: auto;">
-    <table class="table w-100">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Name</th>
-          <th>Price</th>
-          <th>Stock</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let p of products()">
-          <td>#{{ p.id }}</td>
-          <td>{{ p.name }}</td>
-          <td>${{ p.price }}</td>
-          <td>
-            <span [class]="p.stock > 0 ? 'text-success' : 'text-danger'">
-              {{ p.stock > 0 ? p.stock : 'Stock Out' }}
-            </span>
-          </td>
-          <td>
-            <button class="btn-sm btn-primary mr-1" (click)="editProduct(p)">Edit</button>
-            <button class="btn-sm btn-danger" (click)="deleteProduct(p.id)">Delete</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  
-  <h3 class="mt-2">{{ editingProductId ? 'Edit Product' : 'Add New Product' }}</h3>
-  <div class="card p-1 add-product-form">
-    <form (ngSubmit)="createProduct()">
-      <div class="form-row">
-        <div class="form-group">
-          <label>Product Name</label>
-          <input type="text" name="name" [(ngModel)]="newProduct.name" required>
-        </div>
-        <div class="form-group">
-          <label>Price ($)</label>
-          <input type="number" name="price" [(ngModel)]="newProduct.price" required min="0">
-        </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Image URL (Optional)</label>
+            <input type="text" name="image" [(ngModel)]="newProduct.image_url" placeholder="https://example.com/image.jpg">
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea name="description" [(ngModel)]="newProduct.description" rows="3"></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" [disabled]="!newProduct.name || newProduct.price <= 0">
+              {{ editingProductId ? 'Update Product' : 'Create Product' }}
+            </button>
+            <button type="button" class="btn-secondary" *ngIf="editingProductId" (click)="cancelEdit()">Cancel Edit</button>
+          </div>
+        </form>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Stock</label>
-          <input type="number" name="stock" [(ngModel)]="newProduct.stock" required min="0">
-        </div>
-        <div class="form-group">
-          <label>Category</label>
-          <select name="category" [(ngModel)]="newProduct.category_id">
-            <option [ngValue]="null">-- Select Category --</option>
-            <option *ngFor="let c of categories()" [value]="c.id">{{ c.name }}</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Image URL (Optional)</label>
-        <input type="text" name="image" [(ngModel)]="newProduct.image_url" placeholder="https://example.com/image.jpg">
-      </div>
-      <div class="form-group">
-        <label>Description</label>
-        <textarea name="description" [(ngModel)]="newProduct.description" rows="3"></textarea>
-      </div>
-      <div class="form-actions">
-        <button type="submit" class="btn-primary" [disabled]="!newProduct.name || newProduct.price <= 0">
-          {{ editingProductId ? 'Update Product' : 'Create Product' }}
-        </button>
-        <button type="button" class="btn-secondary" *ngIf="editingProductId" (click)="cancelEdit()">Cancel Edit</button>
-      </div>
-    </form>
+    </div>
   </div>
 </div>

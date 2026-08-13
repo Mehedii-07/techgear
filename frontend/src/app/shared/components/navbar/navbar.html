@@ -3,8 +3,8 @@
     <a routerLink="/" class="brand">TechGear</a>
     
     <div class="search-bar">
-      <input type="text" placeholder="Search in TechGear...">
-      <button class="search-btn">Search</button>
+      <input type="text" placeholder="Search in TechGear..." [(ngModel)]="searchQuery" (ngModelChange)="onSearchInput()">
+      <button class="search-btn" (click)="search()">Search</button>
     </div>
 
     <div class="nav-actions">
@@ -13,12 +13,29 @@
       </a>
       
       <ng-container *ngIf="auth.isAuthenticated(); else loginLink">
-        <a *ngIf="auth.isAdmin()" routerLink="/admin" class="nav-item">Admin</a>
-        <a routerLink="/orders" class="nav-item">Orders</a>
-        <button class="btn-secondary" (click)="logout()">Logout</button>
+        
+        <div *ngIf="auth.isAdmin()" class="nav-item dropdown">
+          <a routerLink="/admin" class="nav-link">Admin ▾</a>
+          <div class="dropdown-menu">
+            <a routerLink="/admin" [queryParams]="{tab: 'analytics'}">Analytics</a>
+            <a routerLink="/admin" [queryParams]="{tab: 'orders'}">Orders & Refunds</a>
+            <a routerLink="/admin" [queryParams]="{tab: 'products'}">Products</a>
+            <a routerLink="/admin" [queryParams]="{tab: 'users'}">Users</a>
+          </div>
+        </div>
+
+        <div class="nav-item dropdown">
+          <a routerLink="/account" class="nav-link">My Account ▾</a>
+          <div class="dropdown-menu">
+            <a routerLink="/account" [queryParams]="{tab: 'profile'}">Profile</a>
+            <a routerLink="/account" [queryParams]="{tab: 'orders'}">My Orders</a>
+          </div>
+        </div>
+
+        <button class="btn-secondary logout-btn" (click)="logout()">Logout</button>
       </ng-container>
       <ng-template #loginLink>
-        <a routerLink="/login" class="nav-item">Login / Signup</a>
+        <a routerLink="/login" class="nav-item login-link">Login / Signup</a>
       </ng-template>
     </div>
   </div>

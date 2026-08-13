@@ -35,7 +35,7 @@
     <div class="review-list">
       <div class="review-item" *ngFor="let rev of reviews()">
         <div class="rating">
-          <span class="stars">{{ '★'.repeat(rev.rating) }}{{ '☆'.repeat(5 - rev.rating) }}</span>
+          <span class="stars">{{ getStars(rev.rating) }}</span>
         </div>
         <div class="text" *ngIf="rev.text">{{ rev.text }}</div>
         <div class="date">{{ rev.created_at | date }}</div>
