@@ -1,0 +1,65 @@
+<div class="product-details-container" *ngIf="product(); let p">
+  <div class="card main-info">
+    <div class="image-section">
+      <img *ngIf="p.image_url; else noImg" [src]="p.image_url" [alt]="p.name">
+      <ng-template #noImg><div class="no-img">No Image Available</div></ng-template>
+    </div>
+    <div class="info-section">
+      <h1 class="title">{{ p.name }}</h1>
+      <div class="price">${{ p.price }}</div>
+      
+      <div class="description" *ngIf="p.description">
+        {{ p.description }}
+      </div>
+
+      <div class="stock-status mt-1" [ngClass]="p.stock > 0 ? 'in-stock' : 'out-of-stock'">
+        <strong *ngIf="p.stock > 0">Remaining Quantity: {{ p.stock }}</strong>
+        <strong *ngIf="p.stock <= 0">Stock Out</strong>
+      </div>
+
+      <div class="purchase-actions">
+        <div class="qty-control">
+          <label>Quantity</label>
+          <input type="number" [(ngModel)]="quantity" min="1" [max]="p.stock > 0 ? p.stock : 1">
+        </div>
+        <button class="btn-primary" (click)="addToCart()" [disabled]="p.stock <= 0">
+          {{ p.stock > 0 ? 'Add to Cart' : 'Out of Stock' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card reviews-section">
+    <h3>Customer Reviews</h3>
+    
+    <div class="review-list">
+      <div class="review-item" *ngFor="let rev of reviews()">
+        <div class="rating">
+          <span class="stars">{{ '★'.repeat(rev.rating) }}{{ '☆'.repeat(5 - rev.rating) }}</span>
+        </div>
+        <div class="text" *ngIf="rev.text">{{ rev.text }}</div>
+        <div class="date">{{ rev.created_at | date }}</div>
+      </div>
+      <div class="empty" *ngIf="reviews().length === 0">No reviews yet.</div>
+    </div>
+
+    <div class="add-review" *ngIf="auth.isAuthenticated()">
+      <h4>Write a Review</h4>
+      <div class="form-group">
+        <label>Rating (1-5)</label>
+        <select [(ngModel)]="newReviewRating">
+          <option [value]="5">5 - Excellent</option>
+          <option [value]="4">4 - Good</option>
+          <option [value]="3">3 - Average</option>
+          <option [value]="2">2 - Poor</option>
+          <option [value]="1">1 - Terrible</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Review (Optional)</label>
+        <textarea [(ngModel)]="newReviewText" rows="3"></textarea>
+      </div>
+      <button class="btn-secondary" (click)="submitReview()">Submit Review</button>
+    </div>
+  </div>
+</div>

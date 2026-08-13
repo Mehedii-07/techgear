@@ -1,0 +1,25 @@
+<nav class="navbar">
+  <div class="nav-container">
+    <a routerLink="/" class="brand">TechGear</a>
+    
+    <div class="search-bar">
+      <input type="text" placeholder="Search in TechGear...">
+      <button class="search-btn">Search</button>
+    </div>
+
+    <div class="nav-actions">
+      <a routerLink="/cart" class="nav-item cart">
+        Cart <span class="badge" *ngIf="cart.totalItems() > 0">{{ cart.totalItems() }}</span>
+      </a>
+      
+      <ng-container *ngIf="auth.isAuthenticated(); else loginLink">
+        <a *ngIf="auth.isAdmin()" routerLink="/admin" class="nav-item">Admin</a>
+        <a routerLink="/orders" class="nav-item">Orders</a>
+        <button class="btn-secondary" (click)="logout()">Logout</button>
+      </ng-container>
+      <ng-template #loginLink>
+        <a routerLink="/login" class="nav-item">Login / Signup</a>
+      </ng-template>
+    </div>
+  </div>
+</nav>
