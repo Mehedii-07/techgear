@@ -482,14 +482,6 @@ def create_review(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
-    has_purchased = db.query(models.OrderItem)\
-        .join(models.Order, models.Order.id == models.OrderItem.order_id)\
-        .filter(models.Order.user_id == current_user.id, models.OrderItem.product_id == review.product_id)\
-        .first()
-        
-    if not has_purchased:
-        raise HTTPException(status_code=403, detail="You can only review products you have purchased.")
-        
     new_review = models.Review(**review.model_dump(), user_id=current_user.id)
     db.add(new_review)
     db.commit()
