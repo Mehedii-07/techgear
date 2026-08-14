@@ -64,9 +64,10 @@ export class ProductDetailsComponent implements OnInit {
         text: this.newReviewText
       };
       this.http.post(`${environment.apiUrl}/reviews`, payload).subscribe({
-        next: () => {
+        next: (newReview: any) => {
           this.newReviewText = '';
-          this.fetchReviews(p.id);
+          // Instantly update the UI by adding the new review directly to the signal!
+          this.reviews.update(currentReviews => [newReview, ...currentReviews]);
         },
         error: (err) => {
           alert(err.error?.detail || 'Failed to submit review');
