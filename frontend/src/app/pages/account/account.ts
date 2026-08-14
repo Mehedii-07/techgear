@@ -15,6 +15,10 @@ import { environment } from '../../../environments/environment';
       display: flex;
       min-height: calc(100vh - 70px);
       background-color: #fcfcfc;
+      
+      @media (max-width: 768px) {
+        flex-direction: column;
+      }
     }
     
     .sidebar {
@@ -22,6 +26,13 @@ import { environment } from '../../../environments/environment';
       background-color: #fff;
       border-right: 1px solid #eee;
       padding: 2rem 1rem;
+      
+      @media (max-width: 768px) {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #eee;
+        padding: 1rem;
+      }
       
       .sidebar-brand {
         font-size: 1.25rem;
