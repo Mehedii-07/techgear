@@ -15,8 +15,8 @@ app = FastAPI(title="TechGear API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200"], 
-    allow_credentials=True,
+    allow_origins=["*"], # Allows all frontend domains (Vercel, Netlify, etc.)
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
