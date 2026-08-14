@@ -67,8 +67,13 @@ export class ProductDetailsComponent implements OnInit {
         next: () => {
           this.newReviewText = '';
           this.fetchReviews(p.id);
+        },
+        error: (err) => {
+          alert(err.error?.detail || 'Failed to submit review');
         }
       });
+    } else {
+      alert("Please log in to submit a review.");
     }
   }
 
